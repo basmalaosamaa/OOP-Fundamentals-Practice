@@ -3,6 +3,9 @@
 #include "clsScreen.h"
 #include "clsMainScreen.h"
 #include "clsBankClient.h"
+#include "clsDepositScreen.h"
+#include "clsWithdrawScreen.h"
+#include "clsTotalBalancesScreen.h"
 using namespace std;
 
 class clsTransactionsScreen : protected clsScreen
@@ -10,7 +13,7 @@ class clsTransactionsScreen : protected clsScreen
     enum enTransactionsMenuOptions { eDeposit = 1, eWithdraw = 2, eShowTotalBalance = 3, eShowMainMenu = 4 };
 
     static void _ShowDepositScreen() {
-		cout << "\nDeposit Screen Will be here...\n";
+        clsDepositScreen::ShowDepositScreen();
     }
     static void _GoBackToTransactionsMenu() {
 		cout << setw(37) << left << "" << "\n\tPress any key to go back to Transactions Menue...\n";
@@ -19,11 +22,12 @@ class clsTransactionsScreen : protected clsScreen
 
     }
     static void _ShowWithdrawScreen() {
-		cout << "\nWithdraw Screen Will be here...\n";
+        clsWithdrawScreen::ShowWithdrawScreen();
     }
 	static void _ShowTotalBalancesScreen() {
-		cout << "\nTotal Balances Screen Will be here...\n";
-	}
+        clsTotalBalancesScreen::ShowTotalBalances();
+
+    }
     static void _PerfromTransactionsMenuOption(enTransactionsMenuOptions TransactionMenuOption)
     {
         switch (TransactionMenuOption)
@@ -71,7 +75,9 @@ class clsTransactionsScreen : protected clsScreen
         short Choice = clsInputValidate::ReadShortNumberBetween(1, 4, "Enter Number between 1 to 4? ");
         return Choice;
     }
+
 public:
+
     static void ShowTransactionsMenu()
     {
         system("cls");

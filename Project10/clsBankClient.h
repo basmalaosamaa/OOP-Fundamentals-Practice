@@ -11,8 +11,9 @@ class clsBankClient : public clsPerson
 {
 private:
 
-    enum enMode { EmptyMode = 0, UpdateMode = 1, AddNew = 2 };
+    enum enMode { EmptyMode = 0, UpdateMode = 1, AddNewMode = 2 };
     enMode _Mode;
+
     string _AccountNumber;
     string _PinCode;
     float _AccountBalance;
@@ -86,11 +87,15 @@ private:
         {
 
             for (clsBankClient C : vClients)
-            {     
-                if (C._MarkedForDelete == false) {
+            {
+                if (C.MarkedForDeleted() == false)
+                {
+                    //we only write records that are not marked for delete.  
                     DataLine = _ConverClientObjectToLine(C);
                     MyFile << DataLine << endl;
+
                 }
+
             }
 
             MyFile.close();
@@ -117,15 +122,12 @@ private:
         _SaveCleintsDataToFile(_vClients);
 
     }
-    void _Save() {
 
+    void _AddNew()
+    {
+
+        _AddDataLineToFile(_ConverClientObjectToLine(*this));
     }
-
-     void _AddNew() {
-         _AddDataLineToFile(_ConverClientObjectToLine(*this));
-         
-    }
-
 
     void _AddDataLineToFile(string  stDataLine)
     {
@@ -146,8 +148,6 @@ private:
     {
         return clsBankClient(enMode::EmptyMode, "", "", "", "", "", "", 0);
     }
-
- 
 
 public:
 
@@ -170,12 +170,15 @@ public:
         return (_Mode == enMode::EmptyMode);
     }
 
+    bool MarkedForDeleted()
+    {
+        return _MarkedForDelete;
+    }
 
     string AccountNumber()
     {
         return _AccountNumber;
     }
-
 
     void SetPinCode(string PinCode)
     {
@@ -199,21 +202,6 @@ public:
     }
     __declspec(property(get = GetAccountBalance, put = SetAccountBalance)) float AccountBalance;
 
-    /*void Print()
-    {
-        cout << "\nClient Card:";
-        cout << "\n___________________";
-        cout << "\nFirstName   : " << FirstName;
-        cout << "\nLastName    : " << LastName;
-        cout << "\nFull Name   : " << FullName();
-        cout << "\nEmail       : " << Email;
-        cout << "\nPhone       : " << Phone;
-        cout << "\nAcc. Number : " << _AccountNumber;
-        cout << "\nPassword    : " << _PinCode;
-        cout << "\nBalance     : " << _AccountBalance;
-        cout << "\n___________________\n";
-
-    }*/
 
     static clsBankClient Find(string AccountNumber)
     {
@@ -271,41 +259,52 @@ public:
         return _GetEmptyClientObject();
     }
 
-    enum enSaveResults {
-        svFaildEmptyObject = 0, svSucceeded = 1, svFaildAccountNumberExists = 3 };
-
+    enum enSaveResults { svFaildEmptyObject = 0, svSucceeded = 1, svFaildAccountNumberExists = 2 };
     enSaveResults Save()
     {
 
         switch (_Mode)
         {
         case enMode::EmptyMode:
-            if (IsEmpty())
         {
-            
-            return enSaveResults::svFaildEmptyObject;
+            if (IsEmpty())
+            {
+
+                return enSaveResults::svFaildEmptyObject;
+
+            }
+
         }
 
         case enMode::UpdateMode:
         {
+
+
             _Update();
 
             return enSaveResults::svSucceeded;
 
             break;
         }
-        case enMode::AddNew:
+
+        case enMode::AddNewMode:
         {
-            if (clsBankClient::IsClientExist(_AccountNumber)) {
+            //This will add new record to file or database
+            if (clsBankClient::IsClientExist(_AccountNumber))
+            {
                 return enSaveResults::svFaildAccountNumberExists;
             }
-            else {
+            else
+            {
                 _AddNew();
+
+                //We need to set the mode to update after add new
                 _Mode = enMode::UpdateMode;
                 return enSaveResults::svSucceeded;
             }
-        }
 
+            break;
+        }
         }
 
 
@@ -319,37 +318,63 @@ public:
         return (!Client1.IsEmpty());
     }
 
-    static clsBankClient GetAddNewClientObject(string AccountNumber) {
+    bool Delete()
+    {
+        vector <clsBankClient> _vClients;
+        _vClients = _LoadClientsDataFromFile();
 
-        return clsBankClient(enMode::AddNew, "", "", "", "", AccountNumber, "", 0);
-    }
-
-    bool Delete() {
-        vector<clsBankClient> vClients = _LoadClientsDataFromFile();
-        for (clsBankClient& C : vClients) {
-            if (C.AccountNumber() == _AccountNumber) {
+        for (clsBankClient& C : _vClients)
+        {
+            if (C.AccountNumber() == _AccountNumber)
+            {
                 C._MarkedForDelete = true;
                 break;
             }
+
         }
 
-        _SaveCleintsDataToFile(vClients);
+        _SaveCleintsDataToFile(_vClients);
 
         *this = _GetEmptyClientObject();
+
         return true;
+
     }
 
-     static vector<clsBankClient> GetClientsList() {
-         return _LoadClientsDataFromFile();
+    static clsBankClient GetAddNewClientObject(string AccountNumber)
+    {
+        return clsBankClient(enMode::AddNewMode, "", "", "", "", AccountNumber, "", 0);
     }
-     static double GetTotalBalances() {
-         double TotalBalance = 0;
-         vector<clsBankClient> vClients = _LoadClientsDataFromFile();
-         for (clsBankClient C : vClients) {
-             TotalBalance += C.AccountBalance;
-         }
-         return TotalBalance;
-     }
 
+    static vector <clsBankClient> GetClientsList()
+    {
+        return _LoadClientsDataFromFile();
+    }
+
+
+    void Deposit(double Amount)
+    {
+        _AccountBalance += Amount;
+        Save();
+    }
+
+    bool Withdraw(double Amount)
+    {
+        if (Amount > _AccountBalance) {
+            return false;
+        }
+        else {
+        _AccountBalance -= Amount;
+        Save();
+        }
+    }
+
+    static double GetTotalBalances() {
+        double TotalBalances = 0;
+        vector <clsBankClient> vClients = _LoadClientsDataFromFile();
+        for (clsBankClient C : vClients) {
+            TotalBalances += C.AccountBalance;
+        }
+        return TotalBalances;
+    }
 };
-
