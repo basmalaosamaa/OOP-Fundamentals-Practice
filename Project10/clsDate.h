@@ -1,3 +1,6 @@
+
+//ProgrammingAdivces.com
+//Mohammed Abu-Hadhoud
 #pragma warning(disable : 4996)
 #pragma once
 
@@ -107,6 +110,7 @@ public:
 
 	static	bool IsValidDate(clsDate Date)
 	{
+
 		if (Date.Day < 1 || Date.Day>31)
 			return false;
 
@@ -251,7 +255,7 @@ public:
 		return  NumberOfMinutesInAMonth(_Month, _Year) * 60;
 	}
 
-	static short DayOfWeekOrder(short Day, short Month, short Year) // اليوم دة في السنه الفلانية والشهر الفلاني كان يوم السبت ولا الحد وهكذا
+	static short DayOfWeekOrder(short Day, short Month, short Year)
 	{
 		short a, y, m;
 		a = (14 - Month) / 12;
